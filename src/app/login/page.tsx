@@ -14,6 +14,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSignUp, setIsSignUp] = useState(false);
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -42,7 +43,8 @@ export default function LoginPage() {
     }
   };
 
-  const handleSignUp = async () => {
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsLoading(true);
     setError(null);
 
@@ -58,6 +60,7 @@ export default function LoginPage() {
       if (error) {
         if (error.message === 'User already registered') {
           setError('このメールアドレスは既に登録されています。ログインしてください。');
+          setIsSignUp(false);
           return;
         }
         throw error;
@@ -75,6 +78,11 @@ export default function LoginPage() {
     }
   };
 
+  const toggleMode = () => {
+    setError(null);
+    setIsSignUp(!isSignUp);
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-md space-y-4">
@@ -84,7 +92,7 @@ export default function LoginPage() {
               <div className="flex flex-col items-center text-center">
                 <h1 className="text-2xl font-bold">TODOアプリへようこそ</h1>
                 <p className="text-balance text-muted-foreground">
-                  アカウントにログインしてください
+                  {isSignUp ? '新規アカウントを作成' : 'アカウントにログイン'}してください
                 </p>
               </div>
               {error && (
@@ -99,7 +107,7 @@ export default function LoginPage() {
                   {error}
                 </div>
               )}
-              <form onSubmit={handleLogin} className="space-y-4">
+              <form onSubmit={isSignUp ? handleSignUp : handleLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email">メールアドレス</Label>
                   <Input
@@ -124,25 +132,48 @@ export default function LoginPage() {
                     disabled={isLoading}
                     minLength={8}
                   />
+                  {isSignUp && (
+                    <p className="text-xs text-muted-foreground">
+                      パスワードは8文字以上で設定してください
+                    </p>
+                  )}
                 </div>
                 <Button
                   type="submit"
                   className="w-full"
                   disabled={isLoading}
                 >
-                  {isLoading ? 'ログイン中...' : 'ログイン'}
+                  {isLoading 
+                    ? (isSignUp ? '登録中...' : 'ログイン中...') 
+                    : (isSignUp ? '新規登録' : 'ログイン')}
                 </Button>
               </form>
               <div className="text-center text-sm">
-                アカウントをお持ちでない方は{" "}
-                <button
-                  type="button"
-                  onClick={handleSignUp}
-                  className="text-primary hover:underline"
-                  disabled={isLoading}
-                >
-                  新規登録
-                </button>
+                {isSignUp ? (
+                  <>
+                    すでにアカウントをお持ちの方は{" "}
+                    <button
+                      type="button"
+                      onClick={toggleMode}
+                      className="text-primary hover:underline"
+                      disabled={isLoading}
+                    >
+                      ログイン
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    アカウントをお持ちでない方は{" "}
+                    <button
+                      type="button"
+                      onClick={toggleMode}
+                      className="text-primary hover:underline"
+                      disabled={isLoading}
+                    >
+                      新規登録
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </CardContent>
