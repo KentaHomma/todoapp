@@ -13,6 +13,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSent, setIsSent] = useState(false);
   const router = useRouter();
 
   const handleSignInWithEmail = async (e: React.FormEvent) => {
@@ -30,9 +31,11 @@ export default function LoginPage() {
 
       if (error) throw error;
 
+      setIsSent(true);
       setError('マジックリンクを送信しました。メールを確認してください。');
     } catch (error: any) {
       setError(error.message);
+      setIsSent(false);
     } finally {
       setIsLoading(false);
     }
@@ -46,14 +49,20 @@ export default function LoginPage() {
             <div className="flex flex-col gap-6">
               <div className="flex flex-col items-center text-center">
                 <h1 className="text-2xl font-bold">TODOアプリへようこそ</h1>
-                <p className="text-balance text-muted-foreground">
-                  メールアドレスを入力してログインしてください
-                </p>
+                {!isSent ? (
+                  <p className="text-balance text-muted-foreground">
+                    メールアドレスを入力してログインしてください
+                  </p>
+                ) : (
+                  <p className="text-balance text-muted-foreground">
+                    メールを確認してマジックリンクをクリックしてください
+                  </p>
+                )}
               </div>
               {error && (
                 <div className={cn(
                   "rounded-md p-3 text-sm",
-                  error.includes('マジックリンク') 
+                  isSent 
                     ? "bg-green-100 text-green-800" 
                     : "bg-destructive/15 text-destructive"
                 )}>
@@ -70,16 +79,31 @@ export default function LoginPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@example.com"
                     required
-                    disabled={isLoading}
+                    disabled={isLoading || isSent}
                   />
                 </div>
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isLoading}
-                >
-                  {isLoading ? '送信中...' : 'マジックリンクを送信'}
-                </Button>
+                {!isSent && (
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? '送信中...' : 'マジックリンクを送信'}
+                  </Button>
+                )}
+                {isSent && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      setIsSent(false);
+                      setError(null);
+                    }}
+                  >
+                    別のメールアドレスを使用
+                  </Button>
+                )}
               </form>
             </div>
           </CardContent>
