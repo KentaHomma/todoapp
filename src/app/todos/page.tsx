@@ -1,6 +1,4 @@
-import TodoHeader from '@/components/todos/todo-header';
-import TodoList from '@/components/todos/todo-list';
-import TodoCategories from '@/components/todos/todo-categories';
+import TodoContainer from '@/components/todos/todo-container';
 
 export default function TodosPage() {
   return (
@@ -8,15 +6,7 @@ export default function TodosPage() {
       <header className="dashboard-header">
         <h1>TODOリスト</h1>
       </header>
-      <div className="todos-container">
-        <div className="todos-sidebar">
-          <TodoCategories />
-        </div>
-        <div className="todos-main">
-          <TodoHeader />
-          <TodoList />
-        </div>
-      </div>
+      <TodoContainer />
     </div>
   );
 } 
