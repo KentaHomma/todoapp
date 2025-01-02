@@ -1,30 +1,25 @@
 // src/middleware/auth-middleware.ts
-import { NextApiRequest, NextApiResponse } from 'next';
+'use client';
 
-// 仮の認証関数。実際の認証ロジックはここに実装する必要があります。
-const authenticateUser = async (token: string): Promise<boolean> => {
-  // ここに認証ロジックを実装する。例：APIへのリクエスト、データベースへの問い合わせなど
-  // この例では、ダミーのトークン検証を行っています。
-  return token === 'valid-token';
-};
+import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-const authMiddleware = async (req: NextApiRequest, res: NextApiResponse) => {
-  const token = req.headers.authorization?.split(' ')[1];
+export async function middleware(request: NextRequest) {
+  const res = NextResponse.next();
+  const supabase = createMiddlewareClient({ req: request, res });
 
-  if (!token) {
-    return res.status(401).json({ message: 'Unauthorized' });
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session && request.nextUrl.pathname !== '/login') {
+    return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  const isAuthenticated = await authenticateUser(token);
+  return res;
+}
 
-  if (!isAuthenticated) {
-    return res.status(401).json({ message: 'Unauthorized' });
-  }
-
-  // 認証成功後の処理。リクエストを次のハンドラーに渡すなど。
-  // req.user = authenticatedUser; // 認証済みのユーザー情報をリクエストオブジェクトに追加する
-  return;
+export const config = {
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };
-
-
-export default authMiddleware;

@@ -1,9 +1,14 @@
+'use client';
+
 import React from 'react';
 import NavItem from '@/components/common/nav-item';
-import { IconHome, IconSearch, IconBrain, IconInbox, IconChecklist } from '@tabler/icons-react';
+import { IconHome, IconSearch, IconBrain, IconInbox, IconChecklist, IconLogout } from '@tabler/icons-react';
 import SecondaryNav from './secondary-nav';
+import { useTodo } from '@/contexts/TodoContext';
 
 const MainNav: React.FC = () => {
+  const { logout } = useTodo();
+
   return (
     <aside className="main-nav">
       <div className="nav-logo">
@@ -18,6 +23,12 @@ const MainNav: React.FC = () => {
       </nav>
       <div className="nav-divider"></div>
       <SecondaryNav />
+      <div className="nav-footer">
+        <button className="nav-item" onClick={logout}>
+          <IconLogout size={24} />
+          <span>ログアウト</span>
+        </button>
+      </div>
     </aside>
   );
 };

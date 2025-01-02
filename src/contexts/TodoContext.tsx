@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Todo, Category } from '@/types/todo';
 import { supabase } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
 
 interface TodoContextType {
   todos: Todo[];
@@ -15,6 +16,7 @@ interface TodoContextType {
   toggleTodoComplete: (id: number) => Promise<void>;
   addCategory: (name: string) => Promise<void>;
   setSelectedCategory: (category: string) => void;
+  logout: () => Promise<void>;
 }
 
 const TodoContext = createContext<TodoContextType | undefined>(undefined);
@@ -24,6 +26,7 @@ export function TodoProvider({ children }: { children: ReactNode }) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('すべて');
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
   // データの初期読み込み
   useEffect(() => {
@@ -34,18 +37,28 @@ export function TodoProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
       
-      // カテゴリーの取得
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/login');
+        return;
+      }
+
+      const userId = session.user.id;
+      
+      // カテゴリーの取得（ユーザーIDでフィルタリング）
       const { data: categoriesData, error: categoriesError } = await supabase
         .from('categories')
         .select('*')
+        .eq('user_id', userId)
         .order('created_at', { ascending: true });
 
       if (categoriesError) throw categoriesError;
 
-      // TODOの取得
+      // TODOの取得（ユーザーIDでフィルタリング）
       const { data: todosData, error: todosError } = await supabase
         .from('todos')
         .select('*')
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (todosError) throw todosError;
@@ -203,6 +216,16 @@ export function TodoProvider({ children }: { children: ReactNode }) {
     })));
   }
 
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      router.push('/login');
+      router.refresh();
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
+
   return (
     <TodoContext.Provider value={{
       todos,
@@ -214,7 +237,8 @@ export function TodoProvider({ children }: { children: ReactNode }) {
       deleteTodo,
       toggleTodoComplete,
       addCategory,
-      setSelectedCategory
+      setSelectedCategory,
+      logout: handleLogout
     }}>
       {children}
     </TodoContext.Provider>
