@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "../styles/dashboard.css";
 import MainNav from "@/components/dashboard/navigation/main-nav";
+import { TodoProvider } from "@/contexts/TodoContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,10 +19,12 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body className={inter.className}>
-        <div className="dashboard-layout">
-          <MainNav />
-          {children}
-        </div>
+        <TodoProvider>
+          <div className="dashboard-layout">
+            <MainNav />
+            {children}
+          </div>
+        </TodoProvider>
       </body>
     </html>
   );
